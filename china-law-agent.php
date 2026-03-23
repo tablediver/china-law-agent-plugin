@@ -18,6 +18,7 @@ function cla_defaults(): array {
 	return [
 		'railway_url' => 'https://lawchina-assistant-production.up.railway.app',
 		'cache_ttl'   => 60,
+		'contact_url' => 'http://cn-ebnerstolz-johannes.local/de/standorte/',
 	];
 }
 
@@ -53,6 +54,7 @@ function cla_settings_page(): void {
 		update_option( CLA_OPTION_KEY, [
 			'railway_url' => esc_url_raw( trim( $_POST['railway_url'] ?? '' ) ),
 			'cache_ttl'   => max( 1, intval( $_POST['cache_ttl'] ?? 60 ) ),
+			'contact_url' => esc_url_raw( trim( $_POST['contact_url'] ?? '' ) ),
 		] );
 		delete_transient( CLA_CACHE_KEY );
 		echo '<div class="notice notice-success is-dismissible"><p>Gespeichert &amp; Cache geleert.</p></div>';
@@ -85,6 +87,14 @@ function cla_settings_page(): void {
 						<p class="description">Wie lange das Embed-HTML zwischengespeichert wird.</p>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row"><label for="contact_url">Kontakt-URL</label></th>
+					<td>
+						<input type="url" id="contact_url" name="contact_url"
+						       value="<?= esc_attr( $s['contact_url'] ) ?>" class="regular-text">
+						<p class="description">Ziel des „nimm Kontakt auf"-Links im Widget (gleicher Tab).</p>
+					</td>
+				</tr>
 			</table>
 			<p class="submit">
 				<button type="submit" name="cla_save" class="button button-primary">Speichern</button>
@@ -115,6 +125,15 @@ function cla_shortcode(): string {
 		}
 
 		$html = wp_remote_retrieve_body( $response );
+
+		// Kontakt-URL ersetzen und target="_blank" entfernen
+		$contact_url = esc_url( $s['contact_url'] );
+		$html = preg_replace(
+			'/ href="https:\/\/cn\.ebnerstolz\.com"(\s+target="_blank"\s+rel="noopener")?/',
+			' href="' . $contact_url . '"',
+			$html
+		);
+
 		set_transient( CLA_CACHE_KEY, $html, $s['cache_ttl'] * 60 );
 	}
 
