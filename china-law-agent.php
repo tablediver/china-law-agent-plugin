@@ -165,9 +165,15 @@ add_action( 'wp_head', function () {
 			padding: 0;
 		}
 		/* Widget vollflächig ohne Abstände */
+		body:has(.china-law-agent-embed) .entry {
+			display: block;
+		}
 		body:has(.china-law-agent-embed) .entry-content {
 			display: block;
 			margin-top: 0;
+		}
+		body:has(.china-law-agent-embed) .china-law-agent-embed {
+			width: 100%;
 		}
 	</style>
 	<?php
