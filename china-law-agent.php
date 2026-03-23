@@ -18,7 +18,8 @@ function cla_defaults(): array {
 	return [
 		'railway_url' => 'https://lawchina-assistant-production.up.railway.app',
 		'cache_ttl'   => 60,
-		'contact_url' => 'http://cn-ebnerstolz-johannes.local/de/standorte/',
+		'contact_url_de' => 'http://cn-ebnerstolz-johannes.local/de/standorte/',
+		'contact_url_en' => 'http://cn-ebnerstolz-johannes.local/en/locations/',
 	];
 }
 
@@ -40,7 +41,8 @@ add_action( 'admin_menu', function () {
 
 add_action( 'admin_init', function () {
 	if ( isset( $_GET['cla_clear'] ) && current_user_can( 'manage_options' ) ) {
-		delete_transient( CLA_CACHE_KEY );
+		delete_transient( CLA_CACHE_KEY . '_de' );
+		delete_transient( CLA_CACHE_KEY . '_en' );
 		wp_safe_redirect( admin_url( 'options-general.php?page=china-law-agent&cleared=1' ) );
 		exit;
 	}
@@ -54,9 +56,11 @@ function cla_settings_page(): void {
 		update_option( CLA_OPTION_KEY, [
 			'railway_url' => esc_url_raw( trim( $_POST['railway_url'] ?? '' ) ),
 			'cache_ttl'   => max( 1, intval( $_POST['cache_ttl'] ?? 60 ) ),
-			'contact_url' => esc_url_raw( trim( $_POST['contact_url'] ?? '' ) ),
+			'contact_url_de' => esc_url_raw( trim( $_POST['contact_url_de'] ?? '' ) ),
+			'contact_url_en' => esc_url_raw( trim( $_POST['contact_url_en'] ?? '' ) ),
 		] );
-		delete_transient( CLA_CACHE_KEY );
+		delete_transient( CLA_CACHE_KEY . '_de' );
+		delete_transient( CLA_CACHE_KEY . '_en' );
 		echo '<div class="notice notice-success is-dismissible"><p>Gespeichert &amp; Cache geleert.</p></div>';
 	}
 
@@ -88,11 +92,19 @@ function cla_settings_page(): void {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="contact_url">Kontakt-URL</label></th>
+					<th scope="row"><label for="contact_url_de">Kontakt-URL (DE)</label></th>
 					<td>
-						<input type="url" id="contact_url" name="contact_url"
-						       value="<?= esc_attr( $s['contact_url'] ) ?>" class="regular-text">
-						<p class="description">Ziel des „nimm Kontakt auf"-Links im Widget (gleicher Tab).</p>
+						<input type="url" id="contact_url_de" name="contact_url_de"
+						       value="<?= esc_attr( $s['contact_url_de'] ) ?>" class="regular-text">
+						<p class="description">Ziel des „nimm Kontakt auf"-Links im deutschen Widget.</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="contact_url_en">Kontakt-URL (EN)</label></th>
+					<td>
+						<input type="url" id="contact_url_en" name="contact_url_en"
+						       value="<?= esc_attr( $s['contact_url_en'] ) ?>" class="regular-text">
+						<p class="description">Target of the "get in touch" link in the English widget.</p>
 					</td>
 				</tr>
 			</table>
@@ -111,11 +123,15 @@ function cla_settings_page(): void {
 
 add_shortcode( 'china_law_agent', 'cla_shortcode' );
 
-function cla_shortcode(): string {
-	$s   = cla_settings();
-	$url = rtrim( $s['railway_url'], '/' ) . '/embed';
+function cla_shortcode( array $atts ): string {
+	$atts = shortcode_atts( [ 'lang' => 'de' ], $atts, 'china_law_agent' );
+	$lang = in_array( $atts['lang'], [ 'de', 'en' ], true ) ? $atts['lang'] : 'de';
 
-	$html = get_transient( CLA_CACHE_KEY );
+	$s         = cla_settings();
+	$cache_key = CLA_CACHE_KEY . '_' . $lang;
+	$url       = rtrim( $s['railway_url'], '/' ) . '/embed?lang=' . $lang;
+
+	$html = get_transient( $cache_key );
 
 	if ( $html === false ) {
 		$response = wp_remote_get( $url, [ 'timeout' => 15 ] );
@@ -126,15 +142,15 @@ function cla_shortcode(): string {
 
 		$html = wp_remote_retrieve_body( $response );
 
-		// Kontakt-URL ersetzen und target="_blank" entfernen
-		$contact_url = esc_url( $s['contact_url'] );
+		// Kontakt-URL ersetzen (gleicher Tab, kein target="_blank")
+		$contact_url = esc_url( $s[ 'contact_url_' . $lang ] ?? $s['contact_url_de'] );
 		$html = preg_replace(
 			'/ href="https:\/\/cn\.ebnerstolz\.com"(\s+target="_blank"\s+rel="noopener")?/',
 			' href="' . $contact_url . '"',
 			$html
 		);
 
-		set_transient( CLA_CACHE_KEY, $html, $s['cache_ttl'] * 60 );
+		set_transient( $cache_key, $html, $s['cache_ttl'] * 60 );
 	}
 
 	return $html;
