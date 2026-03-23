@@ -159,21 +159,21 @@ add_action( 'wp_head', function () {
 			grid-area: header;
 			z-index: 1;
 		}
-		/* Widget beginnt hinter dem Header – kein weißer Abstand oben */
+		/* Widget beginnt hinter dem Header – kein Abstand oben, Seitenpadding bleibt für Grid-Math */
 		body:has(.china-law-agent-embed) .site-main {
 			grid-area: header / header / main / main;
-			padding: 0;
+			padding-top: 0;
 		}
-		/* Widget vollflächig ohne Abstände */
-		body:has(.china-law-agent-embed) .entry {
-			display: block;
-		}
+		/* Kein Abstand vor dem Widget */
 		body:has(.china-law-agent-embed) .entry-content {
-			display: block;
 			margin-top: 0;
 		}
+		/* Widget bricht aus dem Grid-Container aus → volle Browserbreite.
+		   .entry und .entry-content bleiben unangetastet, damit nachfolgender
+		   Content (z. B. China Law News) weiterhin korrekt im 12-Spalten-Grid liegt. */
 		body:has(.china-law-agent-embed) .china-law-agent-embed {
-			width: 100%;
+			width: calc(100% + 2 * var(--space-outer));
+			margin-left: calc(-1 * var(--space-outer));
 		}
 	</style>
 	<?php
