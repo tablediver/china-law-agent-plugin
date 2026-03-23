@@ -139,8 +139,12 @@ add_action( 'wp_head', function () {
 			grid-template-areas: 'header' 'main' 'footer';
 			width: 100dvw;
 		}
+		/* Nav-Links weiß (explizite Überschreibung wie im Theme-Desktop-Media-Query) */
 		body:has(.china-law-agent-embed) .site-navigation .menu {
-			--color-menu: var(--color-menu);
+			--color-menu: var(--color-white);
+		}
+		body:has(.china-law-agent-embed) .site-navigation .menu .sub-menu {
+			--color-menu: #63666a;
 		}
 		body:has(.china-law-agent-embed) .site-header:has(#menu-nav:checked) .site-title,
 		body:has(.china-law-agent-embed) .site-header:has(#menu-nav:checked) .site-navigation .toggle-label[for='menu-off'] {
@@ -149,6 +153,21 @@ add_action( 'wp_head', function () {
 		body:has(.china-law-agent-embed) .top-navigation .menu-item.menu-item-um-login {
 			background-color: transparent;
 			color: var(--color-white);
+		}
+		/* Header überlagert Widget (wie Homepage-Slider) */
+		body:has(.china-law-agent-embed) .site-header {
+			grid-area: header;
+			z-index: 1;
+		}
+		/* Widget beginnt hinter dem Header – kein weißer Abstand oben */
+		body:has(.china-law-agent-embed) .site-main {
+			grid-area: header / header / main / main;
+			padding: 0;
+		}
+		/* Widget vollflächig ohne Abstände */
+		body:has(.china-law-agent-embed) .entry-content {
+			display: block;
+			margin-top: 0;
 		}
 	</style>
 	<?php
