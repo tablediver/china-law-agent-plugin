@@ -210,6 +210,10 @@ add_action( 'wp_head', function () {
 			width: calc(100% + 2 * var(--space-outer));
 			margin-left: calc(-1 * var(--space-outer));
 		}
+		/* Abstand des nachfolgenden News-Blocks sicherstellen */
+		body:has(.china-law-agent-embed) .acf-block-related-news.acf-block-related-news {
+			margin-top: var(--space-vertical-25-25-60-64-64);
+		}
 	</style>
 	<?php
 } );
