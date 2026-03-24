@@ -214,6 +214,12 @@ add_action( 'wp_head', function () {
 		body:has(.china-law-agent-embed) .acf-block-related-news.acf-block-related-news {
 			margin-top: var(--space-vertical-25-25-60-64-64);
 		}
+		/* Placeholder-Farbe: im <head> gesetzt damit Theme-CSS keinen Vorrang hat */
+		body:has(.china-law-agent-embed) .search-row input::placeholder,
+		body:has(.china-law-agent-embed) .chat-input-row input::placeholder {
+			color: #a6a7a8 !important;
+			opacity: 1 !important;
+		}
 	</style>
 	<?php
 } );
